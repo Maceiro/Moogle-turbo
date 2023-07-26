@@ -1,0 +1,140 @@
+
+ \documentclass{beamer}
+ 
+ \begin{document}
+ 	
+ 	\title{Moogle_Presentation}
+ 	\author{Luis A. Maceiro}
+ 	\date{25 de julio, 2023}
+ 	
+ 
+ \begin{frame}
+ 	\frametitle{Sistemas de Recuperaci\'on de Informaci\'on }
+ 	\textbf{Elementos }
+ 	\begin{itemize}
+ 		\item Un conjunto de representaciones l\'ogicas de los documentos de la colecci\'on 
+ 		\item Representaciones l\'ogicas de las necesidades del usuario (consultas)
+ 		\item Una funci\'on de ranking 
+   \end{itemize}
+ \end{frame}
+
+\begin{frame}
+	\frametitle{Sistema Vectorial}
+	 \begin{itemize}
+		\item Tanto los documentos de la colecci\'on, como la consulta, se representan mediante vectores del \'algebra lineal n-dimensionales
+		\item A cada componente est\'a asociada una palabra del universo, el valor de dicha componente es el peso de la palabra dentro del documento
+		\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Funci\'on de ranking} 
+	
+	 Sea $t_{i}$ un t\'ermino indexado dentro del documento $d_{j}$ y $w_{ij}$ su peso, entonces dicho documento estar\'a representado por el vector ($w_{1j}, w_{2j},..., w_{nj}$ ) \\
+	 
+	Sea q la consulta y $w_{iq}$ el peso del t\'ermino $t_{i}$ dentro de la consulta, entonces la consulta puede representarse mediante el vector ($w_{1q}, w_{2q},..., w_{nq}$ )\\
+	
+	
+	 Esta funci\'on est\'a dada por la f\'ormula :\\
+	$sim(d_{j}, q)= \frac{ d_{j} \cdot q}{\|d_{j}\| \cdot \|{q}\| } = \frac{ \sum_{i=1}^{n} w_{ij} \cdot w_{iq}}{ \sqrt{\sum_{i=1}^{n} w_{ij}^{2}} \cdot \sqrt{\sum_{i=1}^{n} w_{iq}^{2}}}$ \\
+   \end{frame}
+
+  \begin{frame}[fragile] 
+	\frametitle{ Clase Document}
+	
+	\textbf{Variables de instancia}
+	\begin{itemize}
+		\item string core
+		\item string title
+		\item \verb|Dictionary<string, int>| tfs             
+		\item \verb|Dictionary<string, double>| weigth   
+	\end{itemize}
+
+
+
+  \textbf{M\'etodos}
+  \begin{itemize}
+  	\item Constructor para los documentos de la base de datos
+  	\item Constructor para la consulta del usuario
+  	\item GetIdf
+  	\item Similarity
+  	\item Sorting
+  	\item Tokenizadores
+  \end{itemize}
+
+  \end{frame}
+
+
+  \begin{frame}[fragile]
+	\frametitle{Clase Moogle}
+	\textbf{M\'etodos}
+
+
+   \textbf{	GetDocuments}
+	\begin{itemize}
+		\item Carga los archivos txt desde el directorio en que se encuentran y los transforma en string
+		\item Crea instancias de la clase Document con los strings
+		\item Llama a GetIdf
+	\end{itemize}
+
+    \textbf{Query:}
+   \begin{itemize}
+   	\item Llama a GetDocuments( preprocesamiento)
+   	\item Llama al m\'etodo Sorting de la clase Document (ordena el array de documentos)
+   	\item Busca en la query palabras con los operadores \verb|^ y ~|  y modifica los scores seg\'un halla alg\'un operador de cercan\'ia
+   	\item La b\'usqueda no arrojar\'a m\'as de 7 resultados. 
+   	\item Cada documento que se considere como resultado de la b\'usqueda deber\'a contener a todas las palabras con el operador 
+  \end{itemize}
+
+  \end{frame}
+
+
+  \begin{frame}
+   \frametitle{ Operations}
+   \textbf{M\'etodos m\'as importantes }
+    \begin{itemize}
+   	\item Positions
+   	\item ChangeScore
+   	\item Operations
+   	\item Distance
+   	\item BestStart
+   	\item ObtainValue
+   	\item Generadores de palabras a partir de un \'indice determinado siguiendo varios criterios de generac\'ion
+   	\end{itemize} 
+   \end{frame}
+  
+   \begin{frame}
+   	
+   	\textbf{Snippet m\'as \'optimo:} Es aquel que se asemeja m\'as a la consulta /
+   	
+   	\textbf{ Pasos para cambiar score de los documentos seg\'un operador de cercan\'ia entre dos palabras}
+   	\begin{itemize} 
+   	\item Se calcula la distancia m\'inima para cada documento particular
+   	\item Se halla la mayor de las distancias m\'inimas.
+   	\item Se divide la mayor de las distancias m\'inimas entre la distancia m\'inima en el documento actual, se le suma 10, y se aplica el logaritmo en base 10 al resultado.
+   	\item Se multiplica el score del documento actual por el valor de variaci\'on obtenido
+   	\end{itemize}
+   
+  \end{frame}
+
+
+  \begin{frame}
+  	\textbf{Clase SuggestionUpdate M\'etodos}
+  	\begin{itemize} 
+  	\item Suggestion: Recorre todo el vocabulario y compara cada una de las palabras con el string que recibe como par\'ametro utilizando el algoritmo de Levenshtein.
+  	\item Levenshtein.
+  	\end{itemize}
+  
+ 
+   \textbf{  Clase SnippetOperations}
+  
+  \begin{itemize}
+  	\item MakeSnippet
+  	\item MakeWords
+    \item Generador de palabras
+  \end{itemize} 
+  
+  \end{frame}
+	
+	
+	
+ \end{document}
