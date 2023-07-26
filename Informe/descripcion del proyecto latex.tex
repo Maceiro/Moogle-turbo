@@ -1,0 +1,472 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{manfnt}
+\usepackage{amsfonts}
+\usepackage[margin=2cm]{geometry}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{shortvrb}
+\usepackage{hyperref}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage[T1]{fontenc}
+
+\pagestyle{empty}
+\pagestyle{fancy}
+
+
+\begin{document}
+	
+  \textbf{Intro}
+  
+    Si est\'as leyendo este documento probablemente seas un profesor de Matcom y hayas tenido que leerte decenas de reportes de tus alumnos hablando sobre "modelo vectorial", la "famosa f\'ormula del coseno" y los "tf-idf". La verdad, este es un tema ampliamente difundido, desarrollado, e incluso, el lector debe de haber implementado esta idea en alg\'un momento de su estancia como estudiante en Matcom. Lo importante de este repositorio, es hablar sobre "lo nuevo", "lo genuino", lo que es realmente aportado y concebido por el estudiante. Sinceramente no ha sido para nada f\'acil llevar a cabo la \'ardua tarea de implementar este buscador, siempre hay algo que cambiar, que optimizar, y sobre todo, el mayor incordio de todos """"INSTALAR"""". Parece como si estuviera corriendo por una loma interminable, cada vez que crees que te est\'as acercando al final surge un inconveniente. Pero bueno, esta es la vida que escogimos, al menos, por un per\'iodo de tiempo, y es una vida llena de esfuerzo, al menos al principio, pero llena de satisfacci\'on, y realizaci\'on a trav\'es de lo creado. Por una cuesti\'on de formalismos en la segunda parte de esta introducci\'on se expondr\'a una no tan breve descripci\'on sobre los sistemas de recuperaci\'on de informaci\'on y el modelo vectorial. Invito al lector a saltarse esta parte, y comenzar la lectura por el \'ultimo p\'arrafo de esta intro, ya que en este se explican peculiaridades sobre las estructuras de datos utilizadas en la implementaci\'on del proyecto. \\
+  
+  
+  Un SRI(Sistema de Recuperaci\'on de Informaci\'on) est\'a constitu\'ido por los siguientes elementos:
+  \begin{enumerate}
+  	\item Un conjunto de representaciones l\'ogicas de los documentos de la colecci\'on 
+  	\item Representaciones l\'ogicas de las necesidades del usuario, las cuales son denominadas consultas
+  	\item Una funci\'on de ranking 
+  	\begin{itemize}
+  	\item Esta funci\'on le asigna a cada documento de la colecci\'on un n\'umero real, el cual simboliza su grado de similitud con la consulta.
+  	\item Es importante aclarar que la funci\'on est\'a determinada por la consulta, su dominio es el conjunto de los documentos, el codominio ser\'ia $\mathbf{R}$
+  	\item Permite establecer una relaci\'on de orden entre los documentos
+  	\end{itemize}
+  \end{enumerate}	
+   
+     Entre estos sistemas se encuentra el sistema vectorial el cual tiene las siguientes caracter\'isticas:
+     \begin{itemize}
+     	\item Tanto los documentos de la colecci\'on, como la consulta, se representan mediante vectores del \'algebra lineal n-dimensionales, donde n es el n\'umero de palabras del vocabulario considerado( conjunto de palabras que aparecen en, al menos un documento)
+     	
+     	\item A cada componente est\'a asociada una palabra del universo, y el valor de dicha componente es un n\'umero real que representa el peso de la palabra dentro del documento
+     	
+     	\item Cada palabra ser\'a denominada t\'ermino indexado dentro del documento, y su peso vendr\'ia siendo el grado de importancia de dicha palabra o mejor dicho, su capacidad
+     	 para expresar o resumir el contenido del documento 
+     	 
+     	\item Para calcular los pesos de los t\'erminos en los documentos y en la consulta se utilizan procedimientos distintos
+     \end{itemize}
+     
+     Sea $t_{i}$ un t\'ermino indexado dentro del documento $d_{j}$ y $w_{ij}$ su peso, entonces dicho documento estar\'a representado por el vector ($w_{1j}, w_{2j},..., w_{nj}$ )
+   Sea q la consulta y $w_{iq}$ el peso del t\'ermino $t_{i}$ dentro de la consulta, entonces la consulta puede representarse mediante el vector ($w_{1q}, w_{2q},..., w_{nq}$ )\\
+   
+   Para calcular el grado de similitud entre un documento dado y la consulta, se calcula el coseno del \'angulo comprendido entre sus representaciones vectoriales.
+   Esta funci\'on est\'a dada por :\\
+   $sim(d_{j}, q)= \frac{ d_{j} \cdot q}{\|d_{j}\| \cdot \|{q}\| } = \frac{ \sum_{i=1}^{n} w_{ij} \cdot w_{iq}}{ \sqrt{\sum_{i=1}^{n} w_{ij}^{2}} \cdot \sqrt{\sum_{i=1}^{n} w_{iq}^{2}}}$ \\
+   
+    Veamos ahora el procedimiento para calcular los pesos:
+   Sea $frec_{ij}$ la frecuencia del t\'ermino $t_{i}$ en el documento $d_{j}$, denominaremos frecuencia normalizada y la denotaremos por $tf_{ij}$ al n\'umero $\frac{tf_{ij}}{\max(tf_{lj}) }$ donde $l= 1, 2, 3, ..., n$\\
+   
+   Por otro lado existe otro valor importante en el c\'alculo del peso de cada t\'ermino, el cual depende de la frecuencia del t\'ermino en cada uno de los documentos de la colecci\'on y se denomina \textit{inverse document frecuency}. Se calcula mediante la siguiente f\'ormula $idf_{i}= \log(\frac{ N}{n_{i}})$ donde N es el total de documentos, y $n_{i}$ el n\'umero de documentos en los que aparece el t\'ermino $t_{i}$ .\\
+   
+   Luego, el peso de cada t\'ermino dentro del documento se calcula mediante la f\'ormula $w_{ij}= tf_{ij} \cdot idf_{i}$   \\
+   
+   Para calcular el peso de cada t\'ermino dentro de la consulta se utiliza el algoritmo $w_{iq}= ( a+ (1-a)(\frac{freq_{iq}}{ \max( freq_{lq})}) ) \cdot idf_{i}$  \\
+   	
+   	Los valores m\'as utilizados para la constante a son $0.4$ y $0.5$\\
+   	
+   	
+   	A la hora de transformar el documento en un vector, solamente nos interesa asignar valores a los t\'erminos que aparecen en dicho documento, puesto que lo que no aparecen tendr\'an valor 0, y la hora de efectuar el producto con el vector de la query los t\'erminos con peso nulo no influyen en el resultado, lo mismo ocurre al calcular las normas. Adem\'as, guardar los ceros, supone un gasto de memoria mayor, y a la hora de calcular la suma del producto entre las componentes de los dos vectores se realizan operaciones innecesarias. En este proyecto se opt\'o por utilizar diccionarios para la representaci\'on vectorial de los documentos, de esta manera, adem\'as de almacenar solo los t\'erminos que aparecen dentro del documento se hace referencia a las palabras de forma expl\'icita, es decir mediante llaves con el mismo nombre, y no como en el caso de los arrays, donde la palabra "ciclanita" est\'a asociada a un \'indice.  \\
+   	
+  \newpage 
+\begin{center}
+	\textbf{Desarrollo}
+\end{center}
+
+En esta parte del repositorio se realizar\'a una descripci\'on sobre las clases que se crearon para la implementaci\'on del proyecto.  \\
+ 	
+ \textbf{ Clase Document}
+
+Esta clase es una abstracci\'on del concepto documento. Cuenta con cuatro variables de instancia :
+
+\begin{itemize}
+	\item string  core= Almacena el texto del documento
+	\item string title= Hace referencia al titulo del documento
+	\item Dictionary<string, int> tfs= Contiene cada una de las palabras del documento con su frecuencia             
+     	dentro del mismo
+    \item Dictionary< string, double> weigth= Contiene el tf-idf de cada palabra, es decir el peso    
+\end{itemize}
+   
+
+No solo se crear\'an instancias de esta clase bas\'andonos en los txt de nuestra base de datos, sino que el texto de la b\'usqueda ser\'a considerado como un documento, con todas sus variables de instancia.
+Esta clase contar\'a con dos constructores, uno para los documentos de la base de datos, y otro para instanciar el query.
+
+ A continuaci\'on se enumerar\'an los m\'etodos de esta clase y se explicar\'a brevemente su funci\'on:
+ 
+ \begin {enumerate}
+  \item Constructor convencional: \\
+  Se aplica solamente a los documentos de la base de datos. Se encarga de separar las palabras del texto y calcular su frecuencia. Toda esta informaci\'on se guarda en la variable de instancia \textbf{tfs}
+  Adem\'as inicializa las variables textbf{core} y  textbf{title}
+  
+  Aspectos a destacar:
+  \begin{itemize}
+  \item  Este constructor solamente tiene en cuenta como criterio para separar dos palabras que exista un espacio entre ellas
+  \item A la hora de construir las palabras solo considera los caracteres que representen consonantes o vocales v\'alidas en ciertos idiomas. 
+  \item Remueve las tildes en las palabras donde aparezcan 
+  \item En el momento en que se llama a este constructor no se cuenta con la suficiente informaci\'on para calcular el tf-idf de las palabras, por tanto este constructor no inicializa la variable weigth, o mejor dicho le asigna un diccionario vac\'io.
+ \end{itemize}
+  
+  \item Constructor del query \\
+  A diferencia del constructor de los documentos de la base de datos, este m\'etodo se aplica despu\'es de haber calculado el idf de las palabras del vocabulario, por tanto cuenta con la suficiente informaci\'on para calcular los pesos de las palabras del query. Es decir, inicializa todas las variables de instancia.
+  
+   A la hora de indexar las palabras del query hay que tener en cuenta ciertos caracteres especiales, entre los que est\'a el operador de cercan\'ia \verb|~| y el operador de relevancia \verb|**| . Si al query le aplic\'aramos el constructor de los documentos convencionales se obtendr\'ian resultados err\'oneos. \\
+Por ejemplo: \\
+ \textbf{ “computacion}\verb|~|\textbf{****arquitectura”}\\
+
+ En este caso,luego de aplicar el constructor convencional la variable tfs quedar\'ia con el \'unico par:
+ \begin{tabular}{|r|l|}
+ \hline
+computacionarquitectura  &  1 \\
+\hline
+ \end{tabular}
+
+Puesto que el constructor no reconoce al carácter \verb|~|, lo ignora y como no ve un espacio considera que todo el texto de b\'usqueda tiene una sola palabra.
+Por otra parte si el texto fuera \textbf{ “ computacion *****arquitectura “}  entonces a la hora de calcular los pesos de las palabras no tomar\'ia en cuenta los caracteres*****.
+
+
+Otra cuesti\'on que tiene en cuenta el constructor del query es el caso en que el usuario haya escrito una palabra incorrectamente, y como resultado exista un t\'ermino de la b\'usqueda que no pertenezca el vocabulario, es decir al universo de palabras.\\
+Una vez el constructor termina la indexaci\'on, recorre el diccionario que contiene a todas las palabras del query con la frecuencia.
+Si encuentra alguna que no pertenezca al vocabulario, entonces le aplica el m\'etodo Sugestion de la clase SugestionUpdate. Este m\'etodo se auxilia del diccionario global que almacena todas las palabras del universo junto con su idf, y retorna un string que hace referencia a lo que el usuario pudo haber querido decir, pero escribi\'o mal.\\
+
+Este constructor se encarga de calcular el peso real de la palabra que el usuario quiso decir.
+Por ejemplo:\\
+
+ a) \textbf{“ quer query operations qery ”} \\
+Al aplicar el constructor se obtiene un diccionario con los pares:\\
+\begin{tabular}{|r|l|}
+\hline
+query & 3  \\
+\hline
+operations & 1 \\
+\hline
+\end{tabular}
+
+  \textbf{“ quer quer operations “}     \\
+El diccionario tendr\'a los pares: \\
+\begin{tabular}{|r|l|}
+\hline
+query  &  2   \\
+\hline
+operations & 1\\ 
+\hline
+\end{tabular}
+
+Obs\'ervese que en la primera b\'usqueda el usuario escribi\'o query incorrectamente de dos formas diferentes  y despu\'es lo escribi\'o bien,  lo que sugiere un error de tecleo, mientras que la segunda parece un error ortogr\'afico porque query fue escrita mal dos veces de la misma manera.  Para diferenciar estos dos casos hubo que realizar cambios en la implementaci\'on.
+
+
+ \item GetIdf: 
+ \begin{itemize}
+ \item Recibe un array de instancias de la clase Document, y un diccionario de tipo <string, double> 
+ \item Se encarga de calcular los idf de todas las palabras y guardar esta informac\'on en el diccionario que recibe
+ \item Una vez obtenidos los idf, calcula el peso de las palabras dentro de cada documento en particular, es decir se encarga de inicializar la variable weigth en cada objeto de tipo Document del array.
+\end{itemize}
+ 
+ \item Similarity \\
+ Compara dos documentos y retorna un double que representa el grado de similitud entre ellos\\
+ 
+ \item Sorting 
+ \begin{itemize}
+ \item Recibe un array de objetos Document, y un string que representar\'a la query( el texto de b\'usqueda)
+ \item A cada documento le asigna un score con respecto al query, el conjunto de los scores es almacenado en un array double, el cual es retornado
+ \item Ordena el array de documentos seg\'un el score de cada uno.
+\end{itemize}
+\end{enumerate}
+ 
+  Esta clase contiene m\'etodos auxiliares como separadores de palabras especializados que se utilizan en los constructores, y un m\'etodo para calcular la norma de un vector el cual es utilizado en el m\'etodo Similarity\\
+ 
+\newpage
+
+ \textbf{ Clase Moogle:}
+ 
+ Esta clase cuenta con dos variables est\'aticas. Una es un array para guardar todos los documentos indexados de nuestra base de datos, y la otra es un diccionario<string, double> para guardar todas las palabras que se encuentran en, al menos, un documento ( vocabulario)  junto con su idf
+
+Esta clase contiene dos m\'etodos fundamentales 
+  
+ \begin{enumerate}
+ \item GetDocuments : 
+ \begin{itemize}
+ \item Carga todos los archivos txt de la base de datos desde el directorio en que se encuentran y los convierte en string.
+\item Crea instancias de la clase Document con estos strings y las guarda en la variable est\'atica doc.
+En un principio al aplicar el constructor solo se inicializan las variables core, title, y la que hace referencia a los tfs.
+\item Luego, se llama al m\'etodo GetIdf, pas\'andole como par\'ametro la variable global con los idf
+\end{itemize}
+
+ \item M\'etodo Query:
+ \begin{itemize}
+ \item Llama a GetDocuments el cual realiza primero el preprocesamiento, en caso de que no se haya efectuado con anterioridad y las variables est\'aticas esten vac\'ias.
+
+ \item Llama al m\'etodo Sorting de la clase Document, el cual se encarga de ordenar el array de documentos según el grado de similitud que tengan con la b\'usqueda.
+
+ \item Luego, se realiza un nuevo procesamiento del texto del query, buscando palabras con los operadores \verb|~ y ^| .  El m\'etodo que se encarga de dicho procesamiento es Operations de la clase del mismo nombre. Para obtener informaci\'ion sobre su funcionalidad revisar la clase Operations. 
+
+ \item La b\'usqueda no arrojar\'a m\'as de 7 resultados. 
+ \item Cada documento que se considere como resultado de la b\'usqueda deber\'a contener a todas las palabras que almacena la lista retornada por el m\'etodo Operations.
+
+ \item Hab\'iamos visto que el m'etodo Sorting ordenaba los documentos seg'un el score, sin embargo este score puso haber cambiado con la aplicaci\'on del m\'etod Operations por tanto se ordenan nuevamente los documentos de mayor a menor según el score y se instancian los 7 primeros que cumplan con el requisito mencionado anteriormente.
+
+ \item Para instanciar los resultados de la b'usqueda se cuenta con dos clases SearchItem y SearchResult
+\end{itemize}
+\end{enumerate}
+
+
+  textbf{ Clases auxiliares para instanciar los resutados de la b\'usqueda}
+ \begin{enumerate}
+ \item SearchItem \\
+ Es una representaci\'on resumida de un objeto de tipo Document, que nos aporta informaci\'on sobre el t\'itulo del documento, un fragmento del documento (Snippet) relacionado con la query y el score del documento con respecto a la query.
+
+ \item SearchResult  \\
+  Contiene los documentos m\'as relevantes, y una sugerencia para la b\'usqueda.
+  \end{enumerate}
+
+
+ \textbf{ Clase SugestionUpdate }
+
+Esta clase ha sufrido varias transformaciones en pos de experimentar con posibles alternativas a la aplicación del algoritmo de \textit{ Levenshtein}, de ah\'i el sufijo Update. 
+M\'etodos:
+\begin{enumerate}
+\item Sugestion
+\begin{itemize}
+\item Se encarga de gestionar una sugerencia en caso de que el usuario haya escrito una palabra que no se encuentre en el vocabulario.
+
+\item Recorre todo el vocabulario, es decir, el diccionario global con los idfs de las palabras y compara cada una de ellas con el string que recibe como par\'ametro utilizando el algoritmo de Levenshtein. 
+
+\item Solamente se admite una distancia de edici\'on <= 3. Por tanto \'unicamnete se comparan las palabras tales que el m\'odulo de la diferencia entre su longitud y la del string que simboliza la b\'usqueda sea <=3.  Esto es un manera de descartar palabras del vocabulario sin tener que efectuar la comparaci\'on.
+
+\item Fue concebida otra versi\'on de este m\'etodo que antes de recorrer el diccionario global buscando coincidencias, primero intenta fraccionar la secuencia pasada como par\'ametro en un conjunto de palabras v\'alidas. En caso de que dicha cadena no pudiera ser fragmentada entonces se aplicar\'ia levenshtein.
+Se opt\'o por no utilizar esta versi\'on del m\'etodo Sugestion, pero su implentaci\'on se encuentra dentro del c\'odigo fuente. Y el m\'etodo en que el que se auxilia para la fragmentaci\'on ha sido probado en consola con diccionarios mas pequenos.
+\end{itemize}
+
+\item Levenshtein: \\
+Calcula el n\'umero m\'inimo de operaciones con solo caracter( sustituciones, eliminaciones o agregos) que hay que realizar para igualar dos cadenas dadas.
+\item  Split: \\
+Fragmenta el string que recibe como pa\'ametro en un conjunto de palabras v\'alidas del vocabulario
+\end{enumerate}
+
+\newpage
+
+ \textbf{ Clase Operations}
+
+Para implementar la b\'usqueda de un Snippet primero es necesario definir una noci\'on intuitiva de lo que podr\'ia ser un buen Snippet.
+Se lleg\'o a la conclusi\'on de que un buen Snippet podr\'ia ser un fragmento del documento que se asemeje a la b\'usqueda. Luego el mejor Snippet podr\'ia considerarse como el fragmento que m\'as se parezca. Para implementar esta idea se le asign\'o a cada snippet generado un valor que refleje el grado de similitud con la b\'usqueda. En este valor influyen dos factores: la cantidad de palabras de la query que se encuentren en el fragmento de texto y el peso de estas palabras dentro de la query.\\
+
+Dejemos esta idea flotando en el aire por un momento y hablemos un poco del operador de cercan\'ia \verb|~|.
+Si este operador se encuentra entre dos palabras v\'alidas de la query entonces el score de los documentos cambia según el grado de proximidad de esas palabras en cada uno de los documentos. El m\'etodo encargado de cambiar el score de los documentos se denomina ChangeScore.
+Antes de hablar sobre la implementaci\'on de este m\'etodo hay que tener en cuenta c\'omo se modifica el valor de los scores.\\
+
+
+Primeramente se itera por el texto de cada uno de los documentos y se calcula la distancia m\'inima a la que se encuentran las dos palabras. Estos resultados se guardan en un array. \
+Tiene sentido luego obtener la mayor de estas distancias m\'inimas y dividir este n\'umero entre todas las distancias m\'inimas para determinar el valor de variaci\'on del score.\\
+
+Por ejemplo, supongamos que tenemos 4 documentos y la operación computacion\verb|~|permutacion\\
+
+\begin{tabular}{|r|l|}
+\hline
+ Documento  &   Distancia M\'inima \\
+ \hline
+1    &    30 \\
+2    &    20 \\
+3    &     no se encuentra la cadena computacion  \\
+4    &    5  \\
+\hline
+\end{tabular} \\
+
+\begin{tabular}{|r|l|}
+\hline
+Documento   &    Valor de variaci\'on  \\
+\hline
+1           &      1     \\
+2           &     0.666666…    \\
+3           &     no sabemos como definirlo por el momento    \\
+4           &     6     \\
+\hline
+\end{tabular} \\
+
+
+
+Si multiplicamos cada score por el valor de variaci\'on anteriormente considerado se obtendr\'ian variaciones descontroladas de cada score. Es mejor limitar el rango de estas variaciones utilizando el logaritmo en base 10.
+Sin embargo, cuando calculamos el logaritmo a estos n\'umeros se podr\'ian obtener valores negativos o valores positivos menores que la unidad. Para evitar esto antes de aplicar el logaritmo a cada valor se le suma 10. De esta manera solo se obtendr\'an valores positivos mayores que 1.\\
+Mientras mas cercanas est\'an las palabras mas grande ser\'a el resultado de la divisi\'on considerada anteriormente. Luego el valor de variaci\'on aumentar\'a m\'as. Si las dos palabras se encuentran en el documento A entonces al multiplicar el score por el valor de variaci\'on siempre este aumentar\'a.\\
+Ya tenemos nuestra respuesta para la interrogante de qu\'e hacer cuando alguna de las palabras no se encuentra dentro del documento. Simplemente el valor de variaci\'on ser\'a 1, es decir el score no cambiar\'a. \\
+
+  Luego, valores de variaci\'on ser\'ian los siguientes
+  
+  \begin{tabular}{|r|l|c|r|}
+  \hline
+  Documento  &  Distancia M\'inima   &   Divisi\'on entre la mayor de  &    Sumando 10 y aplicando  \\
+             &                       &   las distancias m\'inimas      &    logaritmo               \\
+  \hline
+  1  &  30  &  \verb|30/30==1|  &  $\log(11) == 1.04139...$ \\
+  2  &  20  &  \verb|30/20==1.5...|  &  $\log(11.5)== 1.0606...$ \\
+  3  &  -1  &     &   1  \\
+  4  &  5   &  \verb|30/5==6|  &  $\log(16)== 1.204...$  \\
+  \hline
+  \end{tabular}
+
+
+Un primer enfoque a la hora de calcular la distancia m\'inima entre dos palabras en un documento dado, implica recorrer el texto del documento. 
+Sin embargo a la hora de determinar el mejor snippet tambi\'en es necesario recorrer todo el texto nuevamente buscando el fragmento con mayor valor con respecto al query.  Para esto iteramos por el texto, una vez encontremos una palabra que pertenezca al query, entonces generamos a partir de ella 10 palabras. El snippet actual ser\'a el conjunto de todas estas palabras. El valor del snippet ser\'a la suma de los pesos de las palabras de la query contenidas en \'el.\\
+
+Hay una manera de implementar el problema del snippet y el problema de la distancia m\'inima sin necesidad de recorrer la cadena dos veces. Podemos crear un diccionario que tenga como llaves a las palabras de la query y a cada llave le asigne una lista de enteros ordenados, que simbolicen las ocurrencias de esa palabra dentro del documento.\\
+
+Ej: \\
+Frodo Bolson vivia en la comarca, pero despues Frodo tuvo la necesidad de irse de la comarca. En principio todo era pacifico, pero llego una era oscura, a Frodo no le quedo mas remedio que emprender el camino hacia la colina, dejando asi su querida comarca. \\
+
+
+Supongamos que la query fuera \textbf{“ Frodo}\verb|~|\textbf{comarca”}
+Nuestro diccionario de ocurrencias tendr\'ia los pares 
+
+\begin{tabular}{|r|l|}
+ \hline
+ Key     &   Value( Lista de ocurrencias)  \\
+ \hline 
+Frodo   &      0   8   28   \\
+comarca  &    5   16   45  \\
+\hline
+\end{tabular} \\
+
+
+Para calcular la menor distancia entre Frodo y comarca podemos iterar por la lista asociada a Frodo. Una vez fijado un \'indice i, es muy f\'acil recorrer la lista de comarca para buscar la ocurrencia de comarca mas cercana al valor del \'indice fijado de Frodo, para hallar la distancia entre los valores de los \'indices considerados se calcula el m\'odulo de la diferencia. Nos quedamos con la menor de todas estas distancias.\\
+
+
+Un proceso similar se podr\'ia realizar para hallar el snippet. Al fijar una posici\'on(ocurrencia) de una palabra de la query dentro del documento podemos iterar por las listas de ocurrencias de todas las palabras de la query. De esta manera podremos saber las palabras de la query que se encuentran a un rango menor de 10 palabras con respecto a la posici\'on fijada y si esto ocurre agregamos el peso de estas palabras al valor del snippet.\\   
+ 
+  Supongamos que nuestra query es \textbf{ "Frodo comarca pero" } entonces nuestro diccionario de ocurrencias tendr\'a los pares \\
+  
+  \begin{tabular}{|r|l|c|}
+  	\hline
+  	Key     &   Value( Lista de ocurrencias)  &  Peso  \\
+  	\hline 
+  	Frodo   &      0   8   28    &   $a_{1}$ \\
+  	comarca  &    5   16   45   &   $a_{2}$ \\
+  	pero   &   6  22       &   $a_{3}$   \\
+  	\hline
+  \end{tabular}  \\
+  
+  Supongamos que estamos analizando el valor del Snippet que comienza con la palabra Frodo en la posici\'on 0 ( se considera como ocurrencia el n\'umero de la palabra y no el \'indice de su primer caracter).
+  Seg\'un la lista de Frodo hay otra ocurrencia de Frodo y es la palabra no. 8 del texto, por tanto est\'a a una distancia de 8 palabras, luego al valor del snippet actual le sumamos el duplo del peso de Frodo. Sin embargo, iterando por la lista de ocurrencia de "comarca" tenemos que hay una ocurrencia que se encuentra a un radio de 5 palabras por tanto incluimos el peso de "comarca" al valor del snippet, y luego realizamos el mismo procedimento con la lista de ocurrencias de "pero". Al final obtenemos que el valor del snippet ser\'a $2a_1+a_2+a_3$
+
+   M\'etodos m\'as importantes de la clase Operations:
+   \begin{enumerate}
+   	\item Positions
+   	\begin{itemize}
+   		\item Recibe un string con el texto de documento y un diccionario que representa la query en su forma indexada
+   		\item Retorna un diccionario con las ocurrencias de las palabras de la query en el documento
+   	\end{itemize}
+   \item ChangeScore
+   \begin{itemize}
+   	\item Recibe como par\'ametros dos strings que son las palabras de la query entre las que se encuentra el operador \verb|~| , un array de diccionarios con las ocurrencias de las palabras de la query en cada uno de los documentos y un array con los scores de los documentos. 
+   	\item Cambia los scores de los documentos seg\'un el grado de proximidad de las palabras.
+   \end{itemize}
+   \item Operations
+   \begin{itemize}
+   	\item Procesa nuevamente el texto de la query y guarda en una lista las palabras de la query precedidas por el caracter \verb|^|, y si encuentra una operaci\'on de tipo <vocablo> ~ <vocablo> llama al m\'etodo ChangeScores para actualizar los scores.
+   	\item Retorna la lista 
+   \end{itemize}
+  \item Distance 
+  \begin{itemize} 
+  	\item Recibe como par\'ametros dos palabras del query y un diccionario con las ocurrencias de estas palabras en el query
+  	\item Retorna la menor distancia entre estas palabras si aparecen en el documento
+  \end{itemize}
+  \item BestStart
+  \begin{itemize}
+  	\item Recibe como par\'amentros dos diccionarios, uno con las ocurrencias de las palabras del query, en el documento, y otro con sus pesos
+  	\item Retorna el no. de palabra a partir del cual comienza el mejor Snippet  
+  \end{itemize}
+
+   Esta clase cuenta con otros m\'etodos auxiliares como generadores de palabras a partir de un \'indice determinado siguiendo varios criterios de generac\'ion y el m/'etodo auxiliar ObtainValue que calcula el valor del Snippet formado a partir de una posici\'on determinada que recibe como par\'ametro
+   
+   \end{enumerate}
+
+
+  \textbf{  Clase SnippetOperations}
+  
+  Los m\'etodos m\'as importantes de esta clase son :
+  
+  \begin{enumerate}
+  	\item MakeSnippet
+  	Su funci\'on es generar el mejor Snippet dentro de un documento dado. Para realizar sus funciones se auxilia de los m'etodos de la clase Operations.
+  	\item MakeWords
+  \begin{itemize}
+  	\item Recibe como par\'ametros un string que representa un texto de un documento dado, un int que es un \'indice dentro del string, y otro int n
+  	\item Genera una frase de n palabras a partir del \'indice indicado dentro del texto que recibe.    
+  	\end{itemize}
+  \end{enumerate} 
+   
+   Esta clase tambi\'en cuenta con un generador de palabras.  \\
+   
+   
+   \textbf{ Sobre los operadores } \\
+   
+   \begin{itemize}
+   	\item Los operadores * y \verb|~| solamente realizar\'an su funci\'on si se encuentran al principio de la palabra \\
+   	
+   	\item El n\'umero de caracteres ** que se escriban antes de la palabra influye en el resultado de la b\'usqueda \\
+   	
+   	\item La funci\'on que realiza \verb|^| no depende de cu\'antas veces se escriba antecediendo a la palabra \\
+   	
+   	\item Si el operador \verb|^| aparece antecediendo a una palabra que no se encuentra en un ninguno de los documentos, entonces el resultado de la b\'usqueda ser\'a vac\'io \\
+   	
+   	\item En la implementaci\'on del operador * se decidi\'o que por cada caracter de este tipo, se aumente en una unidad la frecuencia de la palabra dentro de la query, si el lector, al probar los siguientes ejemplos, siente que debe de incorporar muchos caracteres de este tipo para obtener los resultados que desea, contacte con el programador, y se realizar\'an los cambios pertinentes en el constructor del query. 
+   	
+   	\item El operador de cercan\'ia solamente influye en el score si la diferencia entre las distancias m\'inimas a las que se encuentran los vocablos operando de un documento a otro son significativas. \\
+   	 Por ejemplo, sea la query "op1\verb|~|op2": 
+   	 Si en el documento $d_{i}$  op1 y op2 est\'an a una distancia m\'inima de 1000 palabras, en el documento $d_{j}$ est\'an a una distancia de 5 palabras y no se encuentran simult\'aneamente en nig\'un otro documento, entonces el valor de variaci\'on de $d_{i}$ ser\'a de $1.04...$ mientras que el de $d_{j}$ ser\'a de $2.322...$. 
+   \end{itemize} 
+
+  \newpage
+   Veamos ahora, algunos ejemplos de consultas y los resultados que lanzan:
+   
+  Si escribimos "learning aprendiaje inteligenca" la b\'uscada mostrar\'a documentos que contengan las palabras learning, aprendizaje y inteligencia ( Obs\'ervese que est\'an mal escritas ). Sin embargo, si agregamos al principio de learning el operador \verb|^| la b\'usqueda se reducir\'a considerablemente. \\
+  Observe que no se retorn\'o un Snippet arbitrario, en el caso del primer documento en el score, sino que el Snippet contiene dos palabras de la consulta. \\
+  
+   Lo mismo suceder\'a si escribimos:  \\
+    primero "mono\verb|^^|()tonia~inconmensurable", y despu\'es "mono\verb|^^|()tonia\verb|~^^|inconmensurable"  \\
+    primero "Krogstad port\'atil" y despu\'es "\verb|^|Krogstad port\'atil"  \\
+   Nota: intente agregarle a Krogstad algunos caracteres ********** y ver'a como el \'unico documento que contiene a Krogstad se posicionar\'a como el primer resultado.\\
+   
+   Si escribe "cama fr\'ia " y despu\'es "cama\verb|~|fr\'ia" ver\'a como cambia dr\'asticamente el ranking de algunos documentos\\ 
+   Si escribe "madame hija" y luego "madame\verb|~|hija" ver\'a que en la primera consulta no aparece Pap\'a Goriot, pero en la segunda aparece en la posici\'on \verb|#|2.  \\
+   
+   Pruebe con escribir "istoria lerning" y saldr\'an documentos con la palabras historia y learning. Si escribe "***istoria lerning" uno de los documentos con learning desaparecer\'a de la b\'usqueda, puesto que esta prioriza a istoria. \\
+   
+    Si escribe "maestria harry "  y despu\'es  "***maestria harry" a la b\'usqueda se agregar\'a un nuevo documento.   
+    
+    Si escribe "lgoritmo amr" aparcer\'an resultados con "algoritmo" o con "amo"
+    Si escribe "lgoritmo vectoriale" aparecer\'an resultados con "algoritmo" y "vectoriales"\\
+      
+   \textbf{ Con respecto de los Snippets} \\
+   Pruebe escribir "de la prision de azkaban se ha" y f\'ijese que uno de los snippets de los resultados va a reproducir exactamente el texto escrito.\\
+   Pruebe escribir "conmensurabilidad de dos segmentos" y obtendr\'a un snippet id\'entico
+   
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+   
+   
+\end{document}
+
+
+
+
+
